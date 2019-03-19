@@ -53,7 +53,7 @@ class PeopleCounter(Resource):
                 output_image_path=os.path.join(execution_path, "temp/processedImageName.jpg"))
 
         # Upload processed temp file to s3
-        s3_client.upload_file(os.path.join(execution_path, "temp/processedImageName.jpg"), BUCKET, DESTINATION_FOLDER + rawImageName)
+        s3_client.upload_file(os.path.join(execution_path, "temp/processedImageName.jpg"), BUCKET, DESTINATION_FOLDER + rawImageName, ExtraArgs={'ACL':'public-read'})
         call('rm -rf temp/*', shell=True)
 
         # Tenants Probability
