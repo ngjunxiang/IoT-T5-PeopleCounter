@@ -25,16 +25,8 @@ DESTINATION_FOLDER = 'processed/'
 app = Flask(__name__)
 api = Api(app)
 
-def abortIfImageDoesNotExist(rawImageName):
-    rawImage = "test"
-    if not rawImage:
-        abort(404, message="Image does not exist")
-
 class PeopleCounter(Resource):
     def get(self, rawImageName):
-        # Abort if image does not exist
-        abortIfImageDoesNotExist(rawImageName)
-
         # Get the rawImage from Amazon s3
         try:
             s3_resource.Bucket(BUCKET).download_file(SOURCE_FOLDER + rawImageName, os.path.join(execution_path, "temp/rawImage-" + rawImageName))
@@ -57,7 +49,7 @@ class PeopleCounter(Resource):
         s3_client.upload_file(os.path.join(execution_path, "temp/processedImageName-" + rawImageName), BUCKET, DESTINATION_FOLDER + rawImageName, ExtraArgs={'ACL':'public-read'})
 
         # Remove unused raw images and clear garbage collector
-        # call('rm -rf temp/rawImage*', shell=True)
+        call('rm -rf temp/rawImage*', shell=True)
         gc.collect()
 
         # Tenants Probability
