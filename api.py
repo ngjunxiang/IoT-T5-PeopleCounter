@@ -14,9 +14,6 @@ import gc
 s3_resource = boto3.resource('s3')
 s3_client = boto3.client('s3')
 
-# ImageAI
-execution_path = os.getcwd()
-
 # S3
 BUCKET = 'hubquarters'
 SOURCE_FOLDER = 'source/'
@@ -27,6 +24,9 @@ api = Api(app)
 
 class PeopleCounter(Resource):
     def get(self, rawImageName):
+        # ImageAI
+        execution_path = os.getcwd()
+
         # Get the rawImage from Amazon s3
         try:
             s3_resource.Bucket(BUCKET).download_file(SOURCE_FOLDER + rawImageName, os.path.join(execution_path, "temp/rawImage-" + rawImageName))
@@ -69,7 +69,9 @@ class PeopleCounter(Resource):
             'timeDetetected' : currentDT.strftime("%d %b, %Y - %I:%M:%S %p")
         }
 
+        os.abort()
+
 api.add_resource(PeopleCounter, '/api/peoplecounter/<string:rawImageName>')
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=80, threaded=False)
+    app.run(host="0.0.0.0", port=5000, threaded=False)
