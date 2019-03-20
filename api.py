@@ -48,25 +48,15 @@ class PeopleCounter(Resource):
         # Upload processed temp file to s3
         s3_client.upload_file(os.path.join(execution_path, "temp/processedImageName-" + rawImageName), BUCKET, DESTINATION_FOLDER + rawImageName, ExtraArgs={'ACL':'public-read'})
 
-        # Remove unused raw images and clear garbage collector
-        call('rm -rf temp/rawImage*', shell=True)
-        gc.collect()
-
         # Tenants Probability
         tenants = []
         for eachObject in detections:
             tenants.append({eachObject["name"]:eachObject["percentage_probability"]})
 
-        # # Delete everything
-        # del(s3_client)
-        # del(s3_resource)
-        # del(BUCKET)
-        # del(SOURCE_FOLDER)
-        # del(DESTINATION_FOLDER)
-        # del(execution_path)
-        # del(detector)
-        # del(personOnlyModel)
-        # del(detections)
+        # Remove unused raw images and clear garbage collector
+        call('rm -rf temp/*', shell=True)
+        gc.collect()
+        del(detections)
 
         # Current time
         currentDT = datetime.datetime.now()
