@@ -44,6 +44,7 @@ class PeopleCounter(Resource):
                 custom_objects=personOnlyModel, 
                 input_image=os.path.join(execution_path, "temp/rawImage-" + rawImageName), 
                 output_image_path=os.path.join(execution_path, "temp/processedImageName-" + rawImageName))
+            del(detector)
 
         # Upload processed temp file to s3
         s3_client.upload_file(os.path.join(execution_path, "temp/processedImageName-" + rawImageName), BUCKET, DESTINATION_FOLDER + rawImageName, ExtraArgs={'ACL':'public-read'})
