@@ -36,12 +36,12 @@ class PeopleCounter(Resource):
 
         # Get the rawImage from Amazon s3
         try:
-            s3_resource.Bucket(BUCKET).download_file(SOURCE_FOLDER + rawImageName, os.path.join(execution_path, "temp/rawImage.jpg"))
+            s3_resource.Bucket(BUCKET).download_file(SOURCE_FOLDER + rawImageName, os.path.join(execution_path, "temp/rawImage-" + rawImageName))
         except botocore.exceptions.ClientError as e:
             return e.response['Error']
 
         #  countNumPeople in rawImage
-        if os.path.isfile(os.path.join(execution_path, "temp/rawImage.jpg")):
+        if os.path.isfile(os.path.join(execution_path, "temp/rawImage-" + rawImageName)):
             detector = ObjectDetection()
             detector.setModelTypeAsRetinaNet()
             detector.setModelPath(os.path.join(execution_path, "resnet50_coco_best_v2.0.1.h5"))
@@ -49,12 +49,12 @@ class PeopleCounter(Resource):
             personOnlyModel = detector.CustomObjects(person=True)
             detections = detector.detectCustomObjectsFromImage(
                 custom_objects=personOnlyModel, 
-                input_image=os.path.join(execution_path, "temp/rawImage.jpg"), 
-                output_image_path=os.path.join(execution_path, "temp/processedImageName.jpg"))
+                input_image=os.path.join(execution_path, "temp/rawImage-" + rawImageName), 
+                output_image_path=os.path.join(execution_path, "temp/processedImageName-" + rawImageName))
 
         # Upload processed temp file to s3
-        s3_client.upload_file(os.path.join(execution_path, "temp/processedImageName.jpg"), BUCKET, DESTINATION_FOLDER + rawImageName, ExtraArgs={'ACL':'public-read'})
-        call('rm -rf temp/*', shell=True)
+        s3_client.upload_file(os.path.join(execution_path, "temp/processedImageName-" + rawImageName), BUCKET, DESTINATION_FOLDER + rawImageName, ExtraArgs={'ACL':'public-read'})
+        call('rm -rf temp/rawImage*', shell=True)
 
         # Tenants Probability
         tenants = []
@@ -76,4 +76,4 @@ class PeopleCounter(Resource):
 api.add_resource(PeopleCounter, '/api/peoplecounter/<string:rawImageName>')
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=80)
+    app.run(host="0.0.0.0", port=80, threaded=False)
