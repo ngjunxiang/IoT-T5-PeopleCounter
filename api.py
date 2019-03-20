@@ -10,20 +10,20 @@ from imageai.Detection import ObjectDetection
 from subprocess import call
 import gc
     
-# S3
-s3_resource = boto3.resource('s3')
-s3_client = boto3.client('s3')
-
-# S3
-BUCKET = 'hubquarters'
-SOURCE_FOLDER = 'source/'
-DESTINATION_FOLDER = 'processed/'
-
 app = Flask(__name__)
 api = Api(app)
 
 class PeopleCounter(Resource):
     def get(self, rawImageName):
+        # S3
+        s3_resource = boto3.resource('s3')
+        s3_client = boto3.client('s3')
+
+        # S3
+        BUCKET = 'hubquarters'
+        SOURCE_FOLDER = 'source/'
+        DESTINATION_FOLDER = 'processed/'
+
         # ImageAI
         execution_path = os.getcwd()
 
@@ -44,7 +44,6 @@ class PeopleCounter(Resource):
                 custom_objects=personOnlyModel, 
                 input_image=os.path.join(execution_path, "temp/rawImage-" + rawImageName), 
                 output_image_path=os.path.join(execution_path, "temp/processedImageName-" + rawImageName))
-            del(detector)
 
         # Upload processed temp file to s3
         s3_client.upload_file(os.path.join(execution_path, "temp/processedImageName-" + rawImageName), BUCKET, DESTINATION_FOLDER + rawImageName, ExtraArgs={'ACL':'public-read'})
@@ -58,6 +57,17 @@ class PeopleCounter(Resource):
         for eachObject in detections:
             tenants.append({eachObject["name"]:eachObject["percentage_probability"]})
 
+            # Delete everything
+        del(s3_client)
+        del(s3_resource)
+        del(BUCKET)
+        del(SOURCE_FOLDER)
+        del(DESTINATION_FOLDER)
+        del(execution_path)
+        del(detector)
+        del(personOnlyModel)
+        del(detections)
+
         # Current time
         currentDT = datetime.datetime.now()
 
@@ -66,7 +76,7 @@ class PeopleCounter(Resource):
             'statusCode': 200,
             'processedFileName': rawImageName,
             'tenantsDetected': tenants,
-            'totalDetected': len(detections),
+            'totalDetected': len(tenants),
             'timeDetetected' : currentDT.strftime("%d %b, %Y - %I:%M:%S %p")
         }
 
