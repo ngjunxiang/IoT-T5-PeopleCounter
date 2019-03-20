@@ -8,6 +8,7 @@ import array
 import datetime
 from imageai.Detection import ObjectDetection
 from subprocess import call
+import gc
     
 # S3
 s3_resource = boto3.resource('s3')
@@ -54,7 +55,10 @@ class PeopleCounter(Resource):
 
         # Upload processed temp file to s3
         s3_client.upload_file(os.path.join(execution_path, "temp/processedImageName-" + rawImageName), BUCKET, DESTINATION_FOLDER + rawImageName, ExtraArgs={'ACL':'public-read'})
-        call('rm -rf temp/rawImage*', shell=True)
+
+        # Remove unused raw images and clear garbage collector
+        # call('rm -rf temp/rawImage*', shell=True)
+        gc.collect()
 
         # Tenants Probability
         tenants = []
